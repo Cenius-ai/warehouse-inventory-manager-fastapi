@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Record Movement — Inventory Manager{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Record Stock Movement</h1>
+  <p>Add a stock-in, stock-out, or inventory adjustment</p>
+</div>
+
+{% if errors %}
+{% for err in errors %}
+<div class="alert alert-error">{{ err }}</div>
+{% endfor %}
+{% endif %}
+
+<div class="card">
+  <form method="post" action="/movements/create">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="form-group">
+      <label for="product_id">Product *</label>
+      <select id="product_id" name="product_id" class="form-input" required autofocus onchange="updateStockHint()">
+        <option value="">Select a product…</option>
+        {% for p in products %}
+        <option value="{{ p.id }}" data-stock="{{ p.current_stock }}" data-unit="{{ p.unit }}" {% if product_id == p.id %}selected{% endif %}>
+          {{ p.name }} ({{ p.sku }}) — {{ p.current_stock }} {{ p.unit }}
+        </option>
+        {% endfor %}
+      </select>
+      <span id="stock-hint" style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;display:block;"></span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="form-group">
+        <label for="type">Movement Type *</label>
+        <select id="type" name="type" class="form-input" required>
+          {% for t in types %}
+          <option value="{{ t }}" {% if type == t %}selected{% endif %}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="quantity">Quantity *</label>
+        <input type="number" id="quantity" name="quantity" class="form-input" value="{{ quantity or '' }}" min="1" required placeholder="Enter quantity">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="note">Note</label>
+      <input type="text" id="note" name="note" class="form-input" value="{{ note or '' }}" placeholder="Reference, reason, or order number">
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button type="submit" class="btn btn-primary">Record Movement</button>
+      <a href="/movements/" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+function updateStockHint() {
+  var sel = document.getElementById('product_id');
+  var hint = document.getElementById('stock-hint');
+  if (sel.selectedIndex > 0) {
+    var opt = sel.options[sel.selectedIndex];
+    var stock = opt.getAttribute('data-stock');
+    var unit = opt.getAttribute('data-unit');
+    hint.textContent = 'Current stock: ' + stock + ' ' + unit;
+  } else {
+    hint.textContent = '';
+  }
+}
+updateStockHint();
+</script>
+{% endblock %}

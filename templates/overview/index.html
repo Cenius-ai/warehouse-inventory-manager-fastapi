@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Inventory Manager{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Dashboard</h1>
+  <p>Inventory overview at a glance</p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value">{{ total_products }}</div>
+    <div class="stat-label">Products</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ total_categories }}</div>
+    <div class="stat-label">Categories</div>
+  </div>
+  <div class="stat-card stat-warn">
+    <div class="stat-value">{{ low_stock | length }}</div>
+    <div class="stat-label">Low Stock Items</div>
+  </div>
+  <div class="stat-card stat-danger">
+    <div class="stat-value">{{ out_of_stock | length }}</div>
+    <div class="stat-label">Out of Stock</div>
+  </div>
+</div>
+
+{% if low_stock %}
+<div class="card">
+  <div class="card-header">
+    &#9888; Items Needing Attention
+    <span style="font-weight:400;color:var(--text-muted);font-size:0.8rem;">{{ low_stock | length }} item{{ 's' if low_stock | length != 1 else '' }} at or below reorder point</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Product</th>
+          <th>Category</th>
+          <th>Stock</th>
+          <th>Reorder At</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in low_stock %}
+        <tr class="{% if p.current_stock == 0 %}row-out-of-stock{% else %}row-low-stock{% endif %}">
+          <td><code style="font-family:var(--font-mono);font-size:0.8rem;">{{ p.sku }}</code></td>
+          <td><a href="/products/{{ p.id }}"><strong>{{ p.name }}</strong></a></td>
+          <td>{{ p.category.name if p.category else "—" }}</td>
+          <td><strong>{{ p.current_stock }}</strong> {{ p.unit }}</td>
+          <td>{{ p.reorder_point }}</td>
+          <td><a href="/movements/create?product_id={{ p.id }}" class="btn btn-sm btn-primary">Reorder</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<div class="section-title">Inventory by Category</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;">
+  {% for cat_name, items in by_category.items() %}
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-header">
+      {{ cat_name }}
+      <span style="font-weight:400;color:var(--text-muted);font-size:0.8rem;">{{ items | length }} item{{ 's' if items | length != 1 else '' }}</span>
+    </div>
+    <table style="font-size:0.8rem;">
+      <tbody>
+        {% for p in items %}
+        <tr class="{% if p.current_stock == 0 %}row-out-of-stock{% elif p.current_stock <= p.reorder_point %}row-low-stock{% endif %}">
+          <td><a href="/products/{{ p.id }}">{{ p.name }}</a></td>
+          <td style="text-align:right;"><strong>{{ p.current_stock }}</strong> {{ p.unit }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

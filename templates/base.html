@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Inventory Manager{% endblock %}</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+{% if user %}
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-icon">&#9634;</div>
+    <span>Inventory</span>
+  </div>
+  <ul class="sidebar-nav">
+    <li><a href="/overview" class="{% if request.url.path == '/overview' or request.url.path == '/' %}active{% endif %}">
+      <span class="sidebar-nav-icon">&#9673;</span> Dashboard
+    </a></li>
+    <li><a href="/products" class="{% if request.url.path.startswith('/products') %}active{% endif %}">
+      <span class="sidebar-nav-icon">&#9635;</span> Products
+    </a></li>
+    <li><a href="/categories" class="{% if request.url.path.startswith('/categories') %}active{% endif %}">
+      <span class="sidebar-nav-icon">&#9638;</span> Categories
+    </a></li>
+    <li><a href="/movements" class="{% if request.url.path.startswith('/movements') %}active{% endif %}">
+      <span class="sidebar-nav-icon">&#8645;</span> Movements
+    </a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-user-avatar">{{ user.username[0] | upper }}</div>
+      <span>{{ user.username }}</span>
+    </div>
+    <a href="/auth/logout" style="font-size:0.8rem;color:var(--text-muted);">Sign out</a>
+  </div>
+</aside>
+{% endif %}
+
+<main class="main-content{% if not user %} login-page{% endif %}">
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>

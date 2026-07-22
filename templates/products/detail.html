@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} — Inventory Manager{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>{{ product.name }}</h1>
+  <p>
+    SKU: <code style="font-family:var(--font-mono);">{{ product.sku }}</code>
+    &middot; {{ product.category.name if product.category else "Uncategorised" }}
+    {% if product.current_stock == 0 %}
+    <span class="badge badge-zero">Out of stock</span>
+    {% elif product.current_stock <= product.reorder_point %}
+    <span class="badge badge-low">Low stock</span>
+    {% else %}
+    <span class="badge badge-ok">In stock</span>
+    {% endif %}
+  </p>
+  <div class="page-header-actions">
+    <a href="/movements/create?product_id={{ product.id }}" class="btn btn-primary">+ Record Movement</a>
+    <a href="/products/{{ product.id }}/edit" class="btn btn-secondary">Edit Product</a>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+  <div class="stat-card">
+    <div class="stat-value">{{ product.current_stock }}</div>
+    <div class="stat-label">{{ product.unit }}</div>
+  </div>
+  <div class="stat-card {% if product.current_stock <= product.reorder_point %}stat-warn{% endif %}">
+    <div class="stat-value">{{ product.reorder_point }}</div>
+    <div class="stat-label">Reorder at</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">Product Details</div>
+  <div class="detail-grid">
+    <div class="detail-label">Description</div>
+    <div class="detail-value">{{ product.description or "—" }}</div>
+    <div class="detail-label">Category</div>
+    <div class="detail-value">{{ product.category.name if product.category else "—" }}</div>
+    <div class="detail-label">Unit</div>
+    <div class="detail-value">{{ product.unit }}</div>
+    <div class="detail-label">Created</div>
+    <div class="detail-value">{{ product.created_at.strftime('%Y-%m-%d %H:%M') if product.created_at else "—" }}</div>
+    <div class="detail-label">Updated</div>
+    <div class="detail-value">{{ product.updated_at.strftime('%Y-%m-%d %H:%M') if product.updated_at else "—" }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    Movement History
+    <span style="font-weight:400;color:var(--text-muted);font-size:0.8rem;">{{ product.movements | length }} record{{ 's' if product.movements | length != 1 else '' }}</span>
+  </div>
+  {% if product.movements %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Qty</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in product.movements %}
+        <tr>
+          <td>{{ m.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td>
+            {% if m.type.value == 'IN' %}
+            <span class="badge badge-in">IN</span>
+            {% elif m.type.value == 'OUT' %}
+            <span class="badge badge-out">OUT</span>
+            {% else %}
+            <span class="badge badge-adjust">ADJUST</span>
+            {% endif %}
+          </td>
+          <td><strong>{{ '+' if m.type.value == 'IN' else '-' if m.type.value == 'OUT' else '' }}{{ m.quantity }}</strong> {{ product.unit }}</td>
+          <td>{{ m.note or "—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state" style="padding:24px;">
+    <p>No movements recorded yet.</p>
+  </div>
+  {% endif %}
+</div>
+
+<div style="margin-top:16px;text-align:right;">
+  <form method="post" action="/products/{{ product.id }}/delete" style="display:inline;" data-confirm-name="{{ product.name | js_escape }}" onsubmit="return confirm('Delete ' + this.getAttribute('data-confirm-name') + '? This will also delete all movement history.');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button class="btn btn-danger btn-sm">Delete Product</button>
+  </form>
+</div>
+{% endblock %}
