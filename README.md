@@ -78,7 +78,7 @@ _Full guide: [`USAGE.md`](USAGE.md)_
 
 ## Architecture
 
-FastAPI application, delivered as a complete, runnable project (48 files). Top-level layout: `routers/`, `static/`, `templates/`. `install.sh` provisions dependencies and seeds demo data, so the app boots with something to show. Setup details live in [`INSTALL.md`](INSTALL.md).
+FastAPI application, delivered as a complete, runnable project (35 files). Top-level layout: `routers/`, `static/`, `templates/`. `install.sh` provisions dependencies and seeds demo data, so the app boots with something to show. Setup details live in [`INSTALL.md`](INSTALL.md).
 
 ## FAQ
 
